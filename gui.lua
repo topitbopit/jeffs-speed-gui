@@ -1,4 +1,7 @@
---[[Jeff speed gui 2.1.0]]--
+local JFR = loadstring(game:HttpGet('https://raw.githubusercontent.com/topitbopit/Jeff-2.3-Framework/main/lib.lua'))()
+
+
+--[[indep from ui variables]]--
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PlayerService = game:GetService("Players")
@@ -6,7 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local ContextAction= game:GetService("ContextActionService")
 
-local scriptversion = "2.1.0"
+local scriptversion = "2.2.0"
 local plr = game.Players.LocalPlayer
 
 local ws_speed = 30
@@ -18,6 +21,12 @@ local gl_offset = 0
 
 local gl_ind = true 
 local gl_indcolor = Color3.fromHSV(0.6, 0.9, 0.9)
+local gl_offset_reset = false
+
+local chase_target = nil
+local annoy_power = 9
+
+local smoothcam = true
 
 local gl_indpart = Instance.new("Part")
 local gl_indpart_bb = Instance.new("BillboardGui")
@@ -43,6 +52,17 @@ gl_indpart_tx.Text = "x"
 gl_indpart_tx.TextScaled = true
 gl_indpart_tx.TextStrokeTransparency = 0
 gl_indpart_tx.TextColor3 = gl_indcolor
+
+
+
+local smoothcam_part = Instance.new("Part")
+
+smoothcam_part.Transparency = 1
+smoothcam_part.Size = Vector3.new(1, 1, 1)
+smoothcam_part.Parent = game.Workspace
+smoothcam_part.Name = "SMOOTHCAM"
+smoothcam_part.Anchored = true
+smoothcam_part.CanCollide = false
 
 local hotkeytables = {
     PageDown = "PDn",
@@ -92,7 +112,7 @@ local unbindaction = function(name)
 end
 
 
-local JFR = loadstring(game:HttpGet('https://raw.githubusercontent.com/topitbopit/Jeff-2.3-Framework/main/lib.lua', true))()
+--local JFR = loadstring(game:HttpGet('https://raw.githubusercontent.com/topitbopit/Jeff-2.3-Framework/main/lib.lua', true))()
 
 local newhotkey = function(name, parent, args, bound, unbound)
     local f = JFR.NewTextBox(name.."Hotkey", parent, args, function() 
@@ -222,10 +242,10 @@ JFR.NewBoard("Outline2", bg, {Position = UDim2.new(0, 0, 0, 50), Size = UDim2.ne
 
 --Menus
 local page_home = JFR.NewMenu("Page_Home", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 100)})
-local page_mods = JFR.NewMenu("Page_Mods", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 250), Invisible = true})
+local page_mods = JFR.NewMenu("Page_Mods", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 380), Invisible = true})
 local page_keys = JFR.NewMenu("Page_Keys", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 100), Invisible = true})
 local page_sett = JFR.NewMenu("Page_Settings", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 400), Invisible = true})
-local page_info = JFR.NewMenu("Page_Info", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 400), Invisible = true})
+local page_info = JFR.NewMenu("Page_Info", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 550), Invisible = true})
 
 
 --Tabs
@@ -247,7 +267,7 @@ JFR.NewButton("Tab_Home", menu_tabs, {Position = UDim2.new(0, 12, 0, y), Size = 
 end})
 JFR.OpenObject(JFR.GetInstance("Tab_Home"))
 y=y+40;
-JFR.NewButton("Tab_Mods", menu_tabs, {Position = UDim2.new(0, 12, 0, y), Size = UDim2.new(0, 75, 0, 25), Text = "Modes"}, {on = function()
+JFR.NewButton("Tab_Mods", menu_tabs, {Position = UDim2.new(0, 12, 0, y), Size = UDim2.new(0, 75, 0, 25), Text = "Mods"}, {on = function()
     JFR.CloseObject(JFR.GetInstance("Tab_Home"));
     JFR.OpenObject(JFR.GetInstance("Tab_Mods"));
     JFR.CloseObject(JFR.GetInstance("Tab_Keys"));
@@ -328,6 +348,7 @@ JFR.NewButton("MinimizeButton", bg, {Position = UDim2.new(1, -60, 0, 5), Size = 
         YoMom(JFR.GetInstance("Page_Info"))
         YoMom(JFR.GetInstance("Page_Keys"))
         YoMom(JFR.GetInstance("Page_Mods"))
+        YoMom(JFR.GetInstance("Page_Settings"))
         YoMom(JFR.GetInstance("Menu_Tabs"))
         
         YoMom(JFR.GetInstance("Outline1"))
@@ -354,6 +375,7 @@ JFR.NewButton("MinimizeButton", bg, {Position = UDim2.new(1, -60, 0, 5), Size = 
         YorMom(JFR.GetInstance("Page_Info"), 200)
         YorMom(JFR.GetInstance("Page_Keys"), 200)
         YorMom(JFR.GetInstance("Page_Mods"), 200)
+        YorMom(JFR.GetInstance("Page_Settings"), 200)
         YorMom(JFR.GetInstance("Menu_Tabs"), 200)
         
         
@@ -361,6 +383,7 @@ JFR.NewButton("MinimizeButton", bg, {Position = UDim2.new(1, -60, 0, 5), Size = 
         JFR.GetInstance("Page_Info"    ).Visible = false
         JFR.GetInstance("Page_Keys"  ).Visible = false
         JFR.GetInstance("Page_Mods"    ).Visible = false
+        JFR.GetInstance("Page_Settings"    ).Visible = false
         JFR.GetInstance(page).Visible = true
         
     
@@ -395,10 +418,16 @@ JFR.NewButton("CloseButton", bg, {Position = UDim2.new(1, -30, 0, 5), Size = UDi
     gl_indpart:Destroy()
     
     unbindfrom("jspeed-pa")
-    speedpart:Destroy()
+    pcall(function() speedpart:Destroy() end)
     
     unbindfrom("jspeed-ws")
     unbindfrom("jspeed-cf")
+    
+    unbindfrom("jspeed-smoothcam")
+    pcall(function() smoothcam_part:Destroy() end)
+    
+    game.Workspace.CurrentCamera.CameraSubject = plr.Character.Humanoid
+    pcall(function() plr.Character.HumanoidRootPart.BodyPosition:Destroy() end)
 end})
 
 
@@ -428,7 +457,7 @@ NewLine(page_home, 165)
 JFR.NewButton("HomeDiscord", page_home, {Position = UDim2.new(0.075, 0, 0, 120), Size = UDim2.new(0, 340, 0, 25), Text = "Copy invite to clipboard"}, {on = function() setclipboard("https://discord.gg/XsHXPZSAae") JFR.Async(function() JFR.GetInstance("HomeDiscord").Text = "Copied" wait(1) JFR.GetInstance("HomeDiscord").Text = "Copy invite to clipboard" end) end})
 
 y=5;
-JFR.NewText("SpeedText1", page_mods, {Position = UDim2.new(0.05, -10, 0, y), Size = UDim2.new(0, 400, 0, 25), Text = "Speedhack modes", TextSize = 20})
+JFR.NewText("SpeedText1", page_mods, {Position = UDim2.new(0.05, -10, 0, y), Size = UDim2.new(0, 400, 0, 25), Text = "Modules", TextSize = 20})
 NewlineOnLabel(JFR.GetInstance("SpeedText1"))
 y=y+30;
 
@@ -449,7 +478,7 @@ sel.Parent = JFR.GetInstance("SpeedWsSlider")
 JFR.MakeSlider(sel, JFR.GetInstance("SpeedWsSlider"), ws_vals, function() 
     ws_speed = ws_vals[3]
     JFR.GetInstance("SpeedWs").Text="Walkspeed <font size='10'>("..tostring(ws_speed)..")</font>"
-end)
+end, true)
 
 
 y=y+30;
@@ -458,7 +487,7 @@ y=y+30;
 
 JFR.NewButton("SpeedCFrame", page_mods, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), Text = "CFrame <font size='10'>("..tostring(cf_speed)..")</font>", TextSize = 20}, {on = function() 
     bindto("jspeed-cf",Enum.RenderPriority.Character.Value + 5, function() 
-        plr.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame + (plr.Character.Humanoid.MoveDirection * ((cf_speed / 300) * overdrive))
+        plr.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame + (plr.Character.Humanoid.MoveDirection * ((cf_speed / 50) * overdrive))
     end) 
 end, off = function() 
 RunService:UnbindFromRenderStep("jspeed-cf") 
@@ -472,7 +501,7 @@ sel.Parent = JFR.GetInstance("SpeedCFrameSlider")
 JFR.MakeSlider(sel, JFR.GetInstance("SpeedCFrameSlider"), cf_vals, function() 
     cf_speed = cf_vals[3]
     JFR.GetInstance("SpeedCFrame").Text="CFrame <font size='10'>("..tostring(cf_speed)..")</font>"
-end)
+end, true)
 y=y+30;
 
 
@@ -502,7 +531,7 @@ sel.Parent = JFR.GetInstance("SpeedPartSlider")
 JFR.MakeSlider(sel, JFR.GetInstance("SpeedPartSlider"), pa_vals, function() 
     pa_speed = pa_vals[3]
     JFR.GetInstance("SpeedPart").Text="Part <font size='10'>("..tostring(pa_speed)..")</font>"
-end)
+end, true)
 
 
 
@@ -519,17 +548,25 @@ JFR.NewButton("SpeedGlide", page_mods, {Position = UDim2.new(0.075, 0, 0, y), Si
     glidepart.Position = plr.Character.HumanoidRootPart.Position
     
     gl_indpart_bb.Enabled = gl_ind
+    if gl_offset_reset then
+        gl_offset = 0
+        JFR.GetInstance("GlideOffset").Text = "Glide vertical offset: "..tostring(gl_offset)
+        JFR.TweenCustom(glideoffsetsel, {Position = UDim2.new(0, 70, glideoffsetsel.Position.Y.Scale,glideoffsetsel.Position.Y.Offset )}, 0.25)
+    end
     
     local y = glidepart.Position.Y
     bindto("jspeed-gl",Enum.RenderPriority.Character.Value + 5, function()
-        local v = glidepart.Position + (plr.Character.Humanoid.MoveDirection * ((gl_speed / 300) * overdrive))
+        local v = glidepart.Position + (plr.Character.Humanoid.MoveDirection * ((gl_speed / 50) * overdrive))
         glidepart.Position = Vector3.new(v.X, y+gl_offset, v.Z)
         gl_indpart.Position = glidepart.Position
+        
     end) 
+    
 end, off = function() 
-RunService:UnbindFromRenderStep("jspeed-gl")
-glidepart:Destroy()
-gl_indpart_bb.Enabled = false
+    RunService:UnbindFromRenderStep("jspeed-gl")
+    glidepart:Destroy()
+    gl_indpart_bb.Enabled = false
+    pcall(function() plr.Character.HumanoidRootPart.BodyPosition:Destroy() end)
 end})
 
 JFR.NewBoard("GlideSlider", page_mods, {Position = UDim2.new(0.375, 0, 0, y+9), Size = UDim2.new(0, 220, 0, 7), ZIndex = 200})
@@ -540,7 +577,7 @@ sel.Parent = JFR.GetInstance("GlideSlider")
 JFR.MakeSlider(sel, JFR.GetInstance("GlideSlider"), gl_vals, function() 
     gl_speed = gl_vals[3]
     JFR.GetInstance("SpeedGlide").Text="Glide <font size='10'>("..tostring(gl_speed):sub(1,5)..")</font>"
-end)
+end, true)
 
 y=y+30;
 
@@ -557,17 +594,118 @@ sel = NewSelector(10, (overdrive/25)+1)
 local ov_vals = {}
 sel.Parent = JFR.GetInstance("SpeedOverdriveSlider")
 JFR.MakeSlider(sel, JFR.GetInstance("SpeedOverdriveSlider"), ov_vals, function() 
-    overdrive = (ov_vals[3] / 25) + 1
+    overdrive = (ov_vals[3] / 20) + 1
     JFR.GetInstance("SpeedOverdrive").Text="Overdrive multiplier: "..tostring(overdrive)
-end)
+end, true)
 
-sel = NewSelector(10, (gl_offset)+70)
+glideoffsetsel = NewSelector(10, (gl_offset)+70)
 local glo_vals = {}
-sel.Parent = JFR.GetInstance("GlideOffsetSlider")
-JFR.MakeSlider(sel, JFR.GetInstance("GlideOffsetSlider"), glo_vals, function() 
+glideoffsetsel.Parent = JFR.GetInstance("GlideOffsetSlider")
+JFR.MakeSlider(glideoffsetsel, JFR.GetInstance("GlideOffsetSlider"), glo_vals, function() 
     gl_offset = (glo_vals[3])-70
     JFR.GetInstance("GlideOffset").Text="Glide vertical offset: "..tostring(gl_offset)
+end, true)
+
+
+
+y=y+30;
+JFR.NewText("MiscText1", page_mods, {Position = UDim2.new(0.05, -10, 0, y), Size = UDim2.new(0, 400, 0, 25), Text = "Misc", TextSize = 20})
+NewlineOnLabel(JFR.GetInstance("MiscText1"))
+y=y+30;
+
+JFR.NewButton("PlayerAnnoy", page_mods, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), Text = "Fling player", TextSize = 20}, {on = function() 
+    
+    if pcall(function() return chase_target.Character.Head end) then
+        game.Workspace.CurrentCamera.CameraSubject = chase_target.Character.Humanoid
+        annoy_connection = chase_target.CharacterAdded:Connect(function() 
+            game.Workspace.CurrentCamera.CameraSubject = chase_target.Character:WaitForChild("Humanoid", 1)
+        end)
+    end
+    if glidepart then glidepart:Destroy() end
+    
+    glidepart = Instance.new("BodyPosition")
+    glidepart.Parent = plr.Character.HumanoidRootPart
+    glidepart.D = 451 - annoy_power
+    glidepart.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    glidepart.P = 999999 + (annoy_power * 10)
+    glidepart.Position = plr.Character.HumanoidRootPart.Position
+    pcall(function() glidepart.Position = chase_target.Character.HumanoidRootPart.Position end)
+    
+    
+    gl_indpart_bb.Enabled = gl_ind
+    
+    bindto("jspeed-gl",Enum.RenderPriority.Character.Value + 5, function()
+        pcall(function() glidepart.Position = chase_target.Character.HumanoidRootPart.Position + Vector3.new(math.random(-3,3), 0, math.random(-3,3)) end)
+        gl_indpart.Position = glidepart.Position
+        
+    end)
+end, off = function() 
+    RunService:UnbindFromRenderStep("jspeed-gl")
+    gl_indpart_bb.Enabled = false
+    
+    pcall(function() annoy_connection:Disconnect() end)
+    game.Workspace.CurrentCamera.CameraSubject = plr.Character.Humanoid
+    
+    glidepart.D = 9999
+    wait(0.5)
+    glidepart:Destroy()
+    for i,v in pairs(plr.Character:GetDescendants()) do
+        pcall(function() 
+            v.Velocity = Vector3.new(0, 0, 0)
+            v.RotVelocity = Vector3.new(0, 0, 0) 
+        end)
+    end
+    pcall(function() plr.Character.HumanoidRootPart.BodyPosition:Destroy() end)
+end})
+JFR.NewTextBox("PlayerBox", page_mods, {Position = UDim2.new(0.375, 0, 0, y), Size = UDim2.new(0, 220, 0, 25), Text = "Enter a player", ClearTextOnFocus = true, TextSize = 18}, function()
+    local plrs = {}
+    chase_target = nil
+    local text = JFR.GetInstance("PlayerBox").Text:lower()
+    JFR.GetInstance("PlayerBox").Text = "Scanning..."
+    
+    
+    for _,v in pairs(game.Players:GetChildren()) do
+        if v.Name:lower():match(text) then
+            table.insert(plrs, v)
+        end
+    end
+    
+    local count = table.getn(plrs)
+    
+    if count > 1 then
+        for _,v in pairs(plrs) do
+            if v.Name:lower():sub(1,#text) == text then
+                chase_target = v
+                JFR.GetInstance("PlayerBox").Text = "Chose <font color='rgb(255,255,135)'>"..chase_target.Name.."</font><font size='10'> ("..count.." matches)</font>"
+                break
+            end
+        end
+        
+        if chase_target == nil then 
+            chase_target = plrs[1]
+            JFR.GetInstance("PlayerBox").Text = "Chose <font color='rgb(255,255,135)'>"..chase_target.Name.."</font><font size='10'> ("..count.." matches)</font>"
+        end
+        
+    elseif count == 1 then
+        chase_target = plrs[1]
+        JFR.GetInstance("PlayerBox").Text = "Got <font color='rgb(255,255,135)'>"..chase_target.Name.."</font><font size='10'> ("..count.." match)</font>"
+    else
+        JFR.GetInstance("PlayerBox").Text = "No players found"
+    end
 end)
+
+y=y+50;
+JFR.NewText("PASliderT", page_mods, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), Text = "Fling power: "..tostring(annoy_power), TextSize = 20})
+
+JFR.NewBoard("PASlider", page_mods, {Position = UDim2.new(0.375, 0, 0, y+9), Size = UDim2.new(0, 220, 0, 5), ZIndex = 180})
+
+
+local avalues = {false, nil, 60, 0}
+
+JFR.MakeSlider(NewSelector(10, 4, JFR.GetInstance("PASlider")), JFR.GetInstance("PASlider"), avalues, function() 
+    annoy_power = 1 + (avalues[3] * 2)
+    JFR.GetInstance("PASliderT").Text = "Fling power: "..tostring(annoy_power)
+end, true)
 
 
 y=5;
@@ -587,7 +725,7 @@ end)
 newhotkey("SpeedCFrame", page_keys, {Position = UDim2.new(0.375, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), Text = "No hotkey", TextSize = 20, ClearTextOnFocus = true}, 
 function() 
     bindto("jspeed-cf",Enum.RenderPriority.Character.Value + 5, function() 
-        plr.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame + (plr.Character.Humanoid.MoveDirection * ((cf_speed / 300) * overdrive))
+        plr.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame + (plr.Character.Humanoid.MoveDirection * ((cf_speed / 50) * overdrive))
     end) 
 end, 
 function() 
@@ -624,13 +762,19 @@ function()
     glidepart.Position = plr.Character.HumanoidRootPart.Position
     
     gl_indpart_bb.Enabled = gl_ind
+    if gl_offset_reset then
+        gl_offset = 0
+        JFR.GetInstance("GlideOffset").Text = "Glide vertical offset: "..tostring(gl_offset)
+        JFR.TweenCustom(glideoffsetsel, {Position = UDim2.new(0, 70, glideoffsetsel.Position.Y.Scale,glideoffsetsel.Position.Y.Offset )}, 0.25)
+    end
     
     local y = glidepart.Position.Y
     bindto("jspeed-gl",Enum.RenderPriority.Character.Value + 5, function()
-        local v = glidepart.Position + (plr.Character.Humanoid.MoveDirection * ((gl_speed / 300) * overdrive))
+        local v = glidepart.Position + (plr.Character.Humanoid.MoveDirection * ((gl_speed / 50) * overdrive))
         glidepart.Position = Vector3.new(v.X, y+gl_offset, v.Z)
         gl_indpart.Position = glidepart.Position
-    end) 
+        
+    end)
 end, 
 function() 
     glidepart:Destroy()
@@ -643,10 +787,10 @@ JFR.NewText("", page_keys, {Position = UDim2.new(0.075, 30, 0, y+30), Size = UDi
 y=5;
 JFR.NewText("SettingsText1", page_sett, {Position = UDim2.new(0.05, -10, 0, y), Size = UDim2.new(0, 400, 0, 25), Text = "Settings", TextSize = 20})
 NewlineOnLabel(JFR.GetInstance("SettingsText1"))
-y=y+50;
 
+y=y+30;
 
-JFR.NewButton("GlideInd", page_sett, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 340, 0, 25), Text = "Glide indicator", TextSize = 20}, {on = function() 
+JFR.NewButton("GlideInd", page_sett, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), Text = "Glide indicator", TextSize = 20}, {on = function() 
     gl_ind = true
 end, off = function() 
     gl_ind = false
@@ -654,14 +798,21 @@ end, off = function()
 end})
 JFR.OpenObject(JFR.GetInstance("GlideInd"))
 JFR.SetInstanceValue("GlideInd", true)
+
+JFR.NewButton("ResetGlide", page_sett, {Position = UDim2.new(0.375, 0, 0, y), Size = UDim2.new(0, 220, 0, 25), Text = "Reset glide offset on enable", TextSize = 20}, {on = function() 
+    gl_offset_reset = true
+end, off = function() 
+    gl_offset_reset = false
+end})
+
 y=y+40;
 JFR.NewText("", page_sett, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 400, 0, 25), Text = "Indicator color (HSV)", TextSize = 20})
 
 local colorprev = JFR.NewBoard("GlideIndPreview", page_sett, {BackgroundColor3 = gl_indcolor, Position = UDim2.new(0.375, 40, 0, y), Size = UDim2.new(0, 180, 0, 25), ZIndex = 200})
 y=y+40;
-JFR.NewBoard("GlideIndColorHbg", page_sett, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), ZIndex = 200})
-JFR.NewBoard("GlideIndColorSbg", page_sett, {Position = UDim2.new(0.375, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), ZIndex = 200})
-JFR.NewBoard("GlideIndColorVbg", page_sett, {Position = UDim2.new(0.675, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), ZIndex = 200})
+JFR.NewBoard("GlideIndColorHbg", page_sett, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), ZIndex = 180})
+JFR.NewBoard("GlideIndColorSbg", page_sett, {Position = UDim2.new(0.375, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), ZIndex = 180})
+JFR.NewBoard("GlideIndColorVbg", page_sett, {Position = UDim2.new(0.675, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), ZIndex = 180})
 
 
 local hvalues = {false, nil, 60, 0}
@@ -676,7 +827,7 @@ JFR.MakeSlider(NewSelector(10, 60, JFR.GetInstance("GlideIndColorHbg")), JFR.Get
     )
     colorprev.BackgroundColor3 = gl_indcolor
     gl_indpart_tx.TextColor3 = gl_indcolor
-end)
+end, true)
 
 JFR.MakeSlider(NewSelector(10, 90, JFR.GetInstance("GlideIndColorSbg")), JFR.GetInstance("GlideIndColorSbg"), svalues, function() 
     gl_indcolor = Color3.fromHSV(
@@ -686,7 +837,7 @@ JFR.MakeSlider(NewSelector(10, 90, JFR.GetInstance("GlideIndColorSbg")), JFR.Get
     )
     colorprev.BackgroundColor3 = gl_indcolor
     gl_indpart_tx.TextColor3 = gl_indcolor
-end)
+end, true)
 
 JFR.MakeSlider(NewSelector(10, 90, JFR.GetInstance("GlideIndColorVbg")), JFR.GetInstance("GlideIndColorVbg"), vvalues, function() 
     gl_indcolor = Color3.fromHSV(
@@ -696,14 +847,32 @@ JFR.MakeSlider(NewSelector(10, 90, JFR.GetInstance("GlideIndColorVbg")), JFR.Get
     )
     colorprev.BackgroundColor3 = gl_indcolor
     gl_indpart_tx.TextColor3 = gl_indcolor
-end)
+end, true)
+
+y=y+40;
+
+
+JFR.NewButton("SmoothCam", page_sett, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 220, 0, 25), Text = "Smooth camera", TextSize = 20}, {on = function() 
+    game.Workspace.CurrentCamera.CameraSubject = smoothcam_part
+    smoothcam_part.Position = plr.Character.HumanoidRootPart.Position + Vector3.new(0, 1.5, 0)
+    
+    bindto("jspeed-smoothcam", Enum.RenderPriority.Camera.Value + 5, function()
+        JFR.TweenCustom(smoothcam_part, {Position = plr.Character.HumanoidRootPart.Position + Vector3.new(0, 3, 0) + (plr.Character.Humanoid.MoveDirection / 2)})
+    end)
+end, off = function() 
+    unbindfrom("jspeed-smoothcam")
+    game.Workspace.CurrentCamera.CameraSubject = plr.Character.Humanoid
+end})
 
 y=5;
 
 JFR.NewText("InfoText1", page_info, {Position = UDim2.new(0.05, -10, 0, y), Size = UDim2.new(0, 400, 0, 25), Text = "Information", TextSize = 20})
 NewlineOnLabel(JFR.GetInstance("InfoText1"))
 
-JFR.NewText("InfoText2", page_info, {Position = UDim2.new(0, 10, 0, 30), Size = UDim2.new(0, 400, 0, 400), Text = " <font size='24'><i>Version 2.1.0</i></font><br/> - Changed how the speed setting works for<br/>CFrame and Glide modes (0-210, like the others)<br/> - Added an indicator where glide tries to send you<br/> - Added height setting for glide mode<br/> - Fixed some text being not centered<br/> - Fixed a slightly transparent frame showing when<br/>it shouldn&apos;t be<br/> - Added settings menu<br/> - Made mod menu more condensed<br/><font size='24'><i>Version 2.0.0</i></font><br/> - Completely remade GUI<br/> - Added new Glide mode which is similar to CFrame<br/> - Added sliders for speed setting<br/> - Added overdrive, which is a multiplier for every<br/>speed setting", TextSize = 18})
+JFR.NewText("InfoText2", page_info, {Position = UDim2.new(0, 10, 0, 30), Size = UDim2.new(0, 400, 0, 400), Text = " "..
+    "<font size='24'><i>Version 2.2.0</i></font><br/> - Added an option to reset the glide vertical<br/>offset every time you enable glide<br/> - Added a smooth camera setting for glide mode<br/> - Added a fling module in the Mods page<br/> - Balanced speed settings so glide and cframe don&apos;t need<br/>overdrive<br/> - Increased overdrive speed cap<br/> - Fixed settings menu staying on minimize<br/>"..
+    "<font size='24'><i>Version 2.1.0</i></font><br/> - Changed how the speed setting works for<br/>CFrame and Glide modes (0-210, like the others)<br/> - Added an indicator where glide tries to send you<br/> - Added height setting for glide mode<br/> - Fixed some text being not centered<br/> - Fixed a slightly transparent frame showing when<br/>it shouldn&apos;t be<br/> - Added settings menu<br/> - Made mod menu more condensed<br/>"..
+    "<font size='24'><i>Version 2.0.0</i></font><br/> - Completely remade GUI<br/> - Added new Glide mode which is similar to CFrame<br/> - Added sliders for speed setting<br/> - Added overdrive, which is a multiplier for every<br/>speed setting", TextSize = 18})
 
 local dragarea = Instance.new("Frame")
 dragarea.Size = UDim2.new(0, 500, 0, 50)
