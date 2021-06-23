@@ -9,7 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local ContextAction= game:GetService("ContextActionService")
 
-local scriptversion = "2.2.0"
+local scriptversion = "2.2.1"
 local plr = game.Players.LocalPlayer
 
 local ws_speed = 30
@@ -242,7 +242,7 @@ JFR.NewBoard("Outline2", bg, {Position = UDim2.new(0, 0, 0, 50), Size = UDim2.ne
 
 --Menus
 local page_home = JFR.NewMenu("Page_Home", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 100)})
-local page_mods = JFR.NewMenu("Page_Mods", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 380), Invisible = true})
+local page_mods = JFR.NewMenu("Page_Mods", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 450), Invisible = true})
 local page_keys = JFR.NewMenu("Page_Keys", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 100), Invisible = true})
 local page_sett = JFR.NewMenu("Page_Settings", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 400), Invisible = true})
 local page_info = JFR.NewMenu("Page_Info", bg, {Position = UDim2.new(0, 100, 0, 250), CanvasSize = UDim2.new(0, 100, 0, 550), Invisible = true})
@@ -585,7 +585,7 @@ JFR.NewText("GlideOffset", page_mods, {Position = UDim2.new(0.075, 0, 0, y), Siz
 
 JFR.NewBoard("GlideOffsetSlider", page_mods, {Position = UDim2.new(0.55, 0, 0, y+9), Size = UDim2.new(0, 150, 0, 7), ZIndex = 200})
 
-y=y+50;
+y=y+30;
 JFR.NewText("SpeedOverdrive", page_mods, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), Text = "Overdrive multiplier: "..tostring(overdrive), TextSize = 20})
 
 JFR.NewBoard("SpeedOverdriveSlider", page_mods, {Position = UDim2.new(0.55, 0, 0, y+9), Size = UDim2.new(0, 150, 0, 7), ZIndex = 200})
@@ -626,8 +626,8 @@ JFR.NewButton("PlayerAnnoy", page_mods, {Position = UDim2.new(0.075, 0, 0, y), S
     glidepart = Instance.new("BodyPosition")
     glidepart.Parent = plr.Character.HumanoidRootPart
     glidepart.D = 451 - annoy_power
-    glidepart.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-    glidepart.P = 999999 + (annoy_power * 10)
+    glidepart.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    glidepart.P = 9999999 + (annoy_power * 1000)
     glidepart.Position = plr.Character.HumanoidRootPart.Position
     pcall(function() glidepart.Position = chase_target.Character.HumanoidRootPart.Position end)
     
@@ -635,7 +635,7 @@ JFR.NewButton("PlayerAnnoy", page_mods, {Position = UDim2.new(0.075, 0, 0, y), S
     gl_indpart_bb.Enabled = gl_ind
     
     bindto("jspeed-gl",Enum.RenderPriority.Character.Value + 5, function()
-        pcall(function() glidepart.Position = chase_target.Character.HumanoidRootPart.Position + Vector3.new(math.random(-3,3), 0, math.random(-3,3)) end)
+        pcall(function() glidepart.Position = chase_target.Character.HumanoidRootPart.Position + Vector3.new(math.random(-3,3), math.random(-3,3), math.random(-3,3)) + chase_target.Character.Humanoid.MoveDirection end)
         gl_indpart.Position = glidepart.Position
         
     end)
@@ -647,7 +647,7 @@ end, off = function()
     game.Workspace.CurrentCamera.CameraSubject = plr.Character.Humanoid
     
     glidepart.D = 9999
-    wait(0.5)
+    wait()
     glidepart:Destroy()
     for i,v in pairs(plr.Character:GetDescendants()) do
         pcall(function() 
@@ -694,7 +694,7 @@ JFR.NewTextBox("PlayerBox", page_mods, {Position = UDim2.new(0.375, 0, 0, y), Si
     end
 end)
 
-y=y+50;
+y=y+30;
 JFR.NewText("PASliderT", page_mods, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), Text = "Fling power: "..tostring(annoy_power), TextSize = 20})
 
 JFR.NewBoard("PASlider", page_mods, {Position = UDim2.new(0.375, 0, 0, y+9), Size = UDim2.new(0, 220, 0, 5), ZIndex = 180})
@@ -707,7 +707,71 @@ JFR.MakeSlider(NewSelector(10, 4, JFR.GetInstance("PASlider")), JFR.GetInstance(
     JFR.GetInstance("PASliderT").Text = "Fling power: "..tostring(annoy_power)
 end, true)
 
+y=y+50;
 
+JFR.NewButton("Flight", page_mods, {Position = UDim2.new(0.075, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), Text = "Flight", TextSize = 20}, {on = function() 
+    glidepart = Instance.new("BodyPosition")
+    glidepart.Parent = plr.Character.HumanoidRootPart
+    glidepart.D = 9999
+    glidepart.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    glidepart.P = 1234567
+    glidepart.Position = plr.Character.HumanoidRootPart.Position
+    
+    
+    gl_indpart_bb.Enabled = gl_ind
+    
+    bindto("jspeed-gl",Enum.RenderPriority.Character.Value + 5, function()
+        local humrp = plr.Character.HumanoidRootPart
+        glidepart.Position = (CFrame.new(glidepart.Position, glidepart.Position + game.Workspace.Camera.CFrame.LookVector) * (UserInputService:IsKeyDown(Enum.KeyCode.D) and CFrame.new(((gl_speed / 50) * overdrive), 0, 0) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.S) and CFrame.new(0, 0, ((gl_speed / 50) * overdrive)) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.A) and CFrame.new(-((gl_speed / 50) * overdrive), 0, 0) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.W) and CFrame.new(0, 0, -((gl_speed / 50) * overdrive)) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.Q) and CFrame.new(0, -((gl_speed / 50) * overdrive), 0) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.E) and CFrame.new(0, ((gl_speed / 50) * overdrive), 0) or CFrame.new(0, 0, 0))).Position
+        gl_indpart.Position = glidepart.Position
+        
+    end)
+end, off = function() 
+    RunService:UnbindFromRenderStep("jspeed-gl")
+    gl_indpart_bb.Enabled = false
+    
+    glidepart:Destroy()
+    pcall(function() plr.Character.HumanoidRootPart.BodyPosition:Destroy() end)
+end})
+
+JFR.NewButton("Flightfling", page_mods, {Position = UDim2.new(0.375, 0, 0, y), Size = UDim2.new(0, 220, 0, 25), Text = "Fling (fly)", TextSize = 20}, {on = function() 
+    game.Workspace.CurrentCamera.CameraSubject = gl_indpart
+    
+    glidepart = Instance.new("BodyPosition")
+    glidepart.Parent = plr.Character.HumanoidRootPart
+    glidepart.D = 451 - annoy_power
+    glidepart.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    glidepart.P = 9999999 + (annoy_power * 1000)
+    glidepart.Position = plr.Character.HumanoidRootPart.Position
+    local pos = plr.Character.HumanoidRootPart.CFrame
+    
+    
+    gl_indpart_bb.Enabled = gl_ind
+    
+    bindto("jspeed-gl",Enum.RenderPriority.Character.Value + 5, function()
+        game.Workspace.CurrentCamera.CameraSubject = gl_indpart
+        pos = (CFrame.new(pos.Position, pos.Position + game.Workspace.Camera.CFrame.LookVector) * (UserInputService:IsKeyDown(Enum.KeyCode.D) and CFrame.new(((gl_speed / 50) * overdrive), 0, 0) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.S) and CFrame.new(0, 0, ((gl_speed / 50) * overdrive)) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.A) and CFrame.new(-((gl_speed / 50) * overdrive), 0, 0) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.W) and CFrame.new(0, 0, -((gl_speed / 50) * overdrive)) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.Q) and CFrame.new(0, -((gl_speed / 50) * overdrive), 0) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.E) and CFrame.new(0, ((gl_speed / 50) * overdrive), 0) or CFrame.new(0, 0, 0)))--.Position
+        glidepart.Position = pos.Position + Vector3.new(math.random(-3, 3), math.random(-3, 3), math.random(-3, 3))
+        gl_indpart.Position = pos.Position
+        
+    end)
+end, off = function() 
+    RunService:UnbindFromRenderStep("jspeed-gl")
+    gl_indpart_bb.Enabled = false
+    
+    glidepart.D = 9999
+    wait()
+    glidepart:Destroy()
+    for i,v in pairs(plr.Character:GetDescendants()) do
+        pcall(function() 
+            v.Velocity = Vector3.new(0, 0, 0)
+            v.RotVelocity = Vector3.new(0, 0, 0) 
+        end)
+    end
+    pcall(function() plr.Character.HumanoidRootPart.BodyPosition:Destroy() end)
+    
+    pcall(function() game.Workspace.CurrentCamera.CameraSubject = plr.Character.Humanoid end)
+end})
 y=5;
 JFR.NewText("KeysText1", page_keys, {Position = UDim2.new(0.05, -10, 0, y), Size = UDim2.new(0, 400, 0, 25), Text = "Hotkeys", TextSize = 20})
 NewlineOnLabel(JFR.GetInstance("KeysText1"))
@@ -782,6 +846,32 @@ function()
     gl_indpart_bb.Enabled = false
 end)
 JFR.NewText("", page_keys, {Position = UDim2.new(0.075, 30, 0, y+30), Size = UDim2.new(0, 400, 0, 25), Text = "Glide", TextSize = 20})
+newhotkey("Flight", page_keys, {Position = UDim2.new(0.375, 0, 0, y), Size = UDim2.new(0, 100, 0, 25), Text = "No hotkey", TextSize = 20, ClearTextOnFocus = true}, 
+function()
+    glidepart = Instance.new("BodyPosition")
+    glidepart.Parent = plr.Character.HumanoidRootPart
+    glidepart.D = 9999
+    glidepart.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    glidepart.P = 1234567
+    glidepart.Position = plr.Character.HumanoidRootPart.Position
+    
+    
+    gl_indpart_bb.Enabled = gl_ind
+    
+    bindto("jspeed-gl",Enum.RenderPriority.Character.Value + 5, function()
+        local humrp = plr.Character.HumanoidRootPart
+        glidepart.Position = (CFrame.new(glidepart.Position, glidepart.Position + game.Workspace.Camera.CFrame.LookVector) * (UserInputService:IsKeyDown(Enum.KeyCode.D) and CFrame.new(((gl_speed / 50) * overdrive), 0, 0) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.S) and CFrame.new(0, 0, ((gl_speed / 50) * overdrive)) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.A) and CFrame.new(-((gl_speed / 50) * overdrive), 0, 0) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.W) and CFrame.new(0, 0, -((gl_speed / 50) * overdrive)) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.Q) and CFrame.new(0, -((gl_speed / 50) * overdrive), 0) or CFrame.new(0, 0, 0)) * (UserInputService:IsKeyDown(Enum.KeyCode.E) and CFrame.new(0, ((gl_speed / 50) * overdrive), 0) or CFrame.new(0, 0, 0))).Position
+        gl_indpart.Position = glidepart.Position
+        
+    end)
+end, function() 
+    RunService:UnbindFromRenderStep("jspeed-gl")
+    gl_indpart_bb.Enabled = false
+    
+    glidepart:Destroy()
+    pcall(function() plr.Character.HumanoidRootPart.BodyPosition:Destroy() end)
+end)
+JFR.NewText("", page_keys, {Position = UDim2.new(0.375, 30, 0, y+30), Size = UDim2.new(0, 400, 0, 25), Text = "Flight", TextSize = 20})
 
 
 y=5;
@@ -857,12 +947,16 @@ JFR.NewButton("SmoothCam", page_sett, {Position = UDim2.new(0.075, 0, 0, y), Siz
     smoothcam_part.Position = plr.Character.HumanoidRootPart.Position + Vector3.new(0, 1.5, 0)
     
     bindto("jspeed-smoothcam", Enum.RenderPriority.Camera.Value + 5, function()
-        JFR.TweenCustom(smoothcam_part, {Position = plr.Character.HumanoidRootPart.Position + Vector3.new(0, 3, 0) + (plr.Character.Humanoid.MoveDirection / 2)})
+        game.Workspace.CurrentCamera.CameraSubject = smoothcam_part
+        pcall(function() JFR.TweenCustom(smoothcam_part, {Position = plr.Character.HumanoidRootPart.Position + Vector3.new(0, 3, 0) + (plr.Character.Humanoid.MoveDirection / 2)}) end)
     end)
 end, off = function() 
     unbindfrom("jspeed-smoothcam")
     game.Workspace.CurrentCamera.CameraSubject = plr.Character.Humanoid
 end})
+
+
+
 
 y=5;
 
@@ -870,6 +964,7 @@ JFR.NewText("InfoText1", page_info, {Position = UDim2.new(0.05, -10, 0, y), Size
 NewlineOnLabel(JFR.GetInstance("InfoText1"))
 
 JFR.NewText("InfoText2", page_info, {Position = UDim2.new(0, 10, 0, 30), Size = UDim2.new(0, 400, 0, 400), Text = " "..
+    "<font size='24'><i>Version 2.2.1</i></font><br/> - Made fling work better<br/> - Made smoothcam not break when the camera subject changed <br/> - Added a fly module <br/> - Added a fling fly module"..
     "<font size='24'><i>Version 2.2.0</i></font><br/> - Added an option to reset the glide vertical<br/>offset every time you enable glide<br/> - Added a smooth camera setting for glide mode<br/> - Added a fling module in the Mods page<br/> - Balanced speed settings so glide and cframe don&apos;t need<br/>overdrive<br/> - Increased overdrive speed cap<br/> - Fixed settings menu staying on minimize<br/>"..
     "<font size='24'><i>Version 2.1.0</i></font><br/> - Changed how the speed setting works for<br/>CFrame and Glide modes (0-210, like the others)<br/> - Added an indicator where glide tries to send you<br/> - Added height setting for glide mode<br/> - Fixed some text being not centered<br/> - Fixed a slightly transparent frame showing when<br/>it shouldn&apos;t be<br/> - Added settings menu<br/> - Made mod menu more condensed<br/>"..
     "<font size='24'><i>Version 2.0.0</i></font><br/> - Completely remade GUI<br/> - Added new Glide mode which is similar to CFrame<br/> - Added sliders for speed setting<br/> - Added overdrive, which is a multiplier for every<br/>speed setting", TextSize = 18})
